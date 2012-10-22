@@ -179,7 +179,7 @@ def application(environ, start_response):
     </li>
   </ul>
   <p>
-    <img src="static/smile.jpg" />
+    <img src="application/media/smile.jpg" />
   </p>
 </body>
 </html>'''
