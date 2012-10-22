@@ -179,7 +179,7 @@ def application(environ, start_response):
     </li>
   </ul>
   <p>
-    <img src="application/media/smile.jpg" />
+    <img src="http://www.last-video.com/wp-content/uploads/2012/08/smiley-facebook-smileys-et-emoticones-pour-facebook.jpg" />
   </p>
 </body>
 </html>'''
