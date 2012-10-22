@@ -148,7 +148,7 @@ def application(environ, start_response):
     <div class="brand-text"><strong>Open</strong>Shift</div>
   </a>
   <h1>
-    Welcome to OpenShift
+    Coucou Guigui !
   </h1>
   <p>
     Place your application here
