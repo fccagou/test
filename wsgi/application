@@ -178,6 +178,9 @@ def application(environ, start_response):
       You're welcome to come chat with us in our IRC channel at #openshift on freenode.net
     </li>
   </ul>
+  <p>
+    <img src="static/smile.jpg" />
+  </p>
 </body>
 </html>'''
 
