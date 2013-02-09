@@ -19,7 +19,10 @@ def application(environ, start_response):
 	if environ['PATH_INFO'] == '/health':
 		response_body = "1"
 	elif environ['PATH_INFO'] == '/myip':
-		response_body = environ['REMOTE_ADDR']
+		if len(environ['HTTP_X_FORWARDED_FOR']):
+		    response_body = environ['HTTP_X_FORWARDED_FOR']
+                else:
+		    response_body = environ['REMOTE_ADDR']
 	elif environ['PATH_INFO'] == '/env':
 		response_body = ['%s: %s' % (key, value)
                     for key, value in sorted(environ.items())]
