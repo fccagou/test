@@ -19,7 +19,13 @@ def application(environ, start_response):
 	ctype = 'text/plain'
 	if environ['PATH_INFO'] == '/health':
 		response_body = "1"
+
 	elif environ['PATH_INFO'] == '/myip':
+                if environ.get('HTTP_X_FORWARDED_FOR') and len(environ['HTTP_X_FORWARDED_FOR']):
+                    response_body = environ['HTTP_X_FORWARDED_FOR']
+                else:
+                    response_body = environ['REMOTE_ADDR']
+	elif environ['PATH_INFO'] == '/myip2':
                 if environ.get('HTTP_X_FORWARDED_FOR') and len(environ['HTTP_X_FORWARDED_FOR']):
                     response_body = environ['HTTP_X_FORWARDED_FOR']
                 else:
