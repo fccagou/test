@@ -13,6 +13,7 @@ except IOError:
 # IMPORTANT: Put any additional includes below this line.  If placed above this
 # line, it's possible required libraries won't be in your searchable path
 # 
+data_dir=os.getenv('OPENSHIFT_DATA_DIR')
 
 def application(environ, start_response):
 
@@ -34,7 +35,7 @@ def application(environ, start_response):
                 query = parse_qs(environ['QUERY_STRING'])
                 try:
                     host=query.get('host', [''])[0]
-                    with open("%sip.txt" %(host), 'w') as f:
+                    with open("%s/%sip.txt" %(data_dir,host), 'w') as f:
                         f.write(response_body)
 			f.close()
 
@@ -48,7 +49,7 @@ def application(environ, start_response):
                 query = parse_qs(environ['QUERY_STRING'])
                 host=query.get('host', [''])[0]
 	        try:
-		    response_body = open("%sip.txt" %(host),'r').read()
+		    response_body = open("%s/%sip.txt" %(data_dir, host),'r').read()
 		except Exception as e:
 		    response_body = str(e)
 	
