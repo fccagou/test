@@ -60,6 +60,7 @@ def application(environ, start_response):
 
 	elif environ['PATH_INFO'] == '/scuba':
 	        try:
+		    ctype = 'text/html'
 		    response_body = open("%s/static/index.html" %(environ['DOCUMENT_ROOT']),'r').read()
 		except Exception as e:
 		    response_body = str(e)
