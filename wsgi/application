@@ -58,10 +58,17 @@ def application(environ, start_response):
                     for key, value in sorted(environ.items())]
 		response_body = '\n'.join(response_body)
 
-        elif environ['PATH_INFO'].startswith("/scuba"):
+        elif environ['PATH_INFO'] == "/scuba":
 	        try:
 		    ctype = 'text/html'
 		    response_body = open("%s/%s" %(static_dir, 'index.html'),'r').read()
+		except Exception as e:
+		    response_body = str(e)
+        elif environ['PATH_INFO'].startswith("/scuba/"):
+	        try:
+		    #ctype = 'text/html'
+		    response_body = open("%s/%s" %(static_dir,
+                        environ['PATH_INFO'].split('/')[1:]),'r').read()
 		except Exception as e:
 		    response_body = str(e)
 	else:
