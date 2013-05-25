@@ -57,6 +57,12 @@ def application(environ, start_response):
 		response_body = ['%s: %s' % (key, value)
                     for key, value in sorted(environ.items())]
 		response_body = '\n'.join(response_body)
+
+	elif environ['PATH_INFO'] == '/scuba':
+	        try:
+		    response_body = open("%s/static/index.html" %(environ['DOCUMENT_ROOT']),'r').read()
+		except Exception as e:
+		    response_body = str(e)
 	else:
 		ctype = 'text/html'
 		response_body = '''<!doctype html>
