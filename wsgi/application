@@ -68,7 +68,7 @@ def application(environ, start_response):
 	        try:
 		    #ctype = 'text/html'
 		    response_body = open("%s/%s" %(static_dir,
-                        '/'.join(environ['PATH_INFO'].split('/')[1:])),'r').read()
+                        '/'.join(environ['PATH_INFO'].split('/')[2:])),'r').read()
 		except Exception as e:
 		    response_body = str(e)
 	else:
