@@ -16,7 +16,7 @@ except IOError:
 data_dir=os.getenv('OPENSHIFT_DATA_DIR')
 
 def application(environ, start_response):
-
+        static_dir="%s/static" % (environ['DOCUMENT_ROOT'])
 	ctype = 'text/plain'
 	if environ['PATH_INFO'] == '/health':
 		response_body = "1"
@@ -58,10 +58,10 @@ def application(environ, start_response):
                     for key, value in sorted(environ.items())]
 		response_body = '\n'.join(response_body)
 
-	elif environ['PATH_INFO'] == '/scuba':
+        elif environ['PATH_INFO'].startswith("/scuba"):
 	        try:
 		    ctype = 'text/html'
-		    response_body = open("%s/static/index.html" %(environ['DOCUMENT_ROOT']),'r').read()
+		    response_body = open("%s/%s" %(static_dir, 'index.html'),'r').read()
 		except Exception as e:
 		    response_body = str(e)
 	else:
