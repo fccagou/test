@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>fccagou</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le styles -->
+    <link href="assets/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+    </style>
+    <link href="assets/css/bootstrap-responsive.css" rel="stylesheet">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Fav and touch icons -->
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="ico/apple-touch-icon-114-precomposed.png">
+      <link rel="apple-touch-icon-precomposed" sizes="72x72" href="ico/apple-touch-icon-72-precomposed.png">
+                    <link rel="apple-touch-icon-precomposed" href="ico/apple-touch-icon-57-precomposed.png">
+                                   <link rel="shortcut icon" href="ico/favicon.png">
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="/">fccagou</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">Python<b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+	              <li><a href="http://www.python.org" target="python">python</a></li>
+	              <li><a href="https://pypi.python.org" target="python">pypi</a></li>
+		  </ul>
+                </li>
+                <li class="dropdown">
+                  <a href="devs.html" class="dropdown-toggle" data-toggle="dropdown">Devs<b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+	              <li><a href="https://github.com" target="github">github</a></li>
+		  </ul>
+                </li>
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">Diving<b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+	              <li><a href="diving.html">Diving</a></li>
+	              <li><a href="http://subsurface.hohndel.org/"
+                          target="subsurface">Subsurface: opensource divelog program</a></li>
+	              <li><a href="https://fr.divelogs.de/"
+                          target="divelogs">divelogs: online divelogs book</a></li>
+		  </ul>
+                </li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <h3>Des outils de gestion de code</h3>
+      <h4>Trac configuré avec agilo</h4>
+      <p><a href="http://trac.edgewall.org/"
+          target="trac">Trac home page</a> est un logiciel de de gestion de
+      tickets.</p>
+      <p>Associé à <a href="http://www.agilofortrac.com/download-agilo-trac/"
+          target="agilo">Agilo</a>, il intègre les pratiques de développement
+      agile comme scrum et kanban.</p>
+
+      <p><u>Installation dans virtualenv</u></p>
+      <p>
+      <pre>
+      virtualenv trac-env
+      source trac-env/bin/activate
+      pip install --upgrade babel
+      pip install trac
+      tar xzvf agilo_source.tar.gz
+      cd agilo-0.9.12
+      python setup.py install
+      </pre>
+      </p>
+      <p><u>Création d'un projet</u></p>
+      <p>
+      <pre>
+      trac-admin /srv/trac/admins initenv
+      git init --bare /src/repos/admins
+      </pre>
+      </p>
+
+      <p><u>Configuration</u></p>
+      <p>
+      <pre>
+# -*- coding: utf-8 -*-
+
+[agilo-backlogs]
+product_backlog.columns = businessvalue, roif, story_priority,
+rd_points|total_story_points
+product_backlog.include_planned_items = False
+product_backlog.name = Product Backlog
+sprint_backlog.charts = burndown
+sprint_backlog.columns = remaining_time:editable|total_remaining_time,
+owner:editable, drp_resources:editable
+sprint_backlog.include_planned_items = False
+sprint_backlog.name = Sprint Backlog
+
+[agilo-links]
+allow = requirement-story, story-task, bug-task, bug-story
+bug.calculate = total_remaining_time=sum:get_outgoing.remaining_time
+bug.task.copy = owner, sprint
+bug.task.show = owner, remaining_time
+cache.related = false
+cache.timeout = 0
+requirement.calculate =
+total_story_points=sum:get_outgoing.rd_points|type=story,mandatory_story_points=sum:get_outgoing.rd_points|type=story|story_priority=Mandatory,roif=div:businessvalue;mandatory_story_points
+requirement.story.copy = owner
+requirement.story.show = rd_points, story_priority
+story.calculate =
+total_remaining_time=sum:get_outgoing.remaining_time,estimated_remaining_time=mul:rd_points;get_sprint.get_team_metrics.rt_usp_ratio
+story.task.copy = owner, sprint
+story.task.show = owner, remaining_time
+
+[agilo-types]
+bug = owner, sprint, priority
+bug.alias = Bug
+requirement = reporter, businessvalue, milestone, keywords
+requirement.alias = Requirement
+story = owner, sprint, rd_points, story_priority, keywords
+story.alias = User Story
+task = owner, sprint, remaining_time, drp_resources
+task.alias = Task
+
+[attachment]
+max_size = 262144
+max_zip_size = 2097152
+render_unsafe_content = false
+
+[browser]
+color_scale = True
+downloadable_paths = /trunk, /branches/*, /tags/*
+hide_properties = svk:merge
+intermediate_color = 
+intermediate_point = 
+newest_color = (255, 136, 136)
+oldest_color = (136, 136, 255)
+oneliner_properties = trac:summary
+render_unsafe_content = false
+wiki_properties = trac:description
+
+[changeset]
+max_diff_bytes = 10000000
+max_diff_files = 0
+wiki_format_messages = true
+
+[components]
+agilo.* = enabled
+agilo_common.* = enabled
+agilo_pro.* = enabled
+trac.ticket.api.ticketsystem = disabled
+trac.ticket.roadmap.roadmapmodule = disabled
+trac.ticket.web_ui.ticketmodule = disabled
+tracopt.versioncontrol.git.* = enabled
+
+[header_logo]
+alt = (please configure the [header_logo] section in trac.ini)
+height = -1
+link = 
+src = agilo/images/default_logo.png
+width = -1
+
+[inherit]
+htdocs_dir = 
+plugins_dir = 
+templates_dir = /home/ME/src/trac-env/local/lib/python2.7/site-packages/agilo-0.9.12-py2.7.egg/agilo/templates
+
+[logging]
+log_file = trac.log
+log_level = DEBUG
+log_type = none
+
+[milestone]
+stats_provider = DefaultTicketGroupStatsProvider
+
+[mimeviewer]
+max_preview_size = 262144
+mime_map = text/x-dylan:dylan, text/x-idl:ice, text/x-ada:ads:adb
+mime_map_patterns = text/plain:README|INSTALL|COPYING.*
+tab_width = 8
+treat_as_binary = application/octet-stream, application/pdf,
+application/postscript, application/msword,application/rtf,
+
+[notification]
+admit_domains = 
+always_notify_owner = false
+always_notify_reporter = false
+always_notify_updater = true
+ambiguous_char_width = single
+batch_subject_template = $prefix Batch modify: $tickets_descr
+email_sender = SmtpEmailSender
+ignore_domains = 
+mime_encoding = none sendmail_path = sendmail
+smtp_always_bcc = 
+smtp_always_cc = 
+smtp_default_domain = 
+smtp_enabled = false
+smtp_from = trac@localhost
+smtp_from_author = false
+smtp_from_name = 
+smtp_password = 
+smtp_port = 25
+smtp_replyto = trac@localhost
+smtp_server = localhost
+smtp_subject_prefix = __default__
+smtp_user = 
+ticket_subject_template = $prefix #$ticket.id: $summary
+use_public_cc = false
+use_short_addr = false
+use_tls = false
+
+[project]
+admin = 
+admin_trac_url = .
+descr = My example project
+footer = Visit the Trac open source project at<br /><a href="http://trac.edgewall.org/">http://trac.edgewall.org/</a>
+icon = agilo/images/favicon.ico
+name = admin
+url = 
+
+[query]
+default_anonymous_query = status!=closed&cc~=$USER
+default_query = status!=closed&owner=$USER
+items_per_page = 100
+ticketlink_query = ?status=!closed
+
+[report]
+items_per_page = 100
+items_per_page_rss = 0
+
+[revisionlog]
+default_log_limit = 100
+graph_colors = ['#cc0', '#0c0', '#0cc', '#00c', '#c0c', '#c00']
+
+[roadmap]
+stats_provider = DefaultTicketGroupStatsProvider
+
+[search]
+min_query_length = 3
+
+[ticket]
+default_cc = 
+default_component = 
+default_description = 
+default_keywords = 
+default_milestone = 
+default_owner = < default >
+default_priority = major
+default_resolution = fixed
+default_severity = 
+default_summary = 
+default_version = 
+max_comment_size = 262144
+max_description_size = 262144
+preserve_newlines = default
+workflow = ConfigurableTicketWorkflow
+
+[ticket-custom]
+businessvalue = select
+businessvalue.label = Business Value
+businessvalue.options = |100|200|300|500|800|1200|2000|3000
+businessvalue.value = 
+drp_resources = text
+drp_resources.label = Resources
+i_links = text
+i_links.label = Referenced By
+o_links = text
+o_links.label = References
+rd_points = select
+rd_points.label = Story Points
+rd_points.options = |0|1|2|3|5|8|13|20|40|100
+remaining_time = text
+remaining_time.label = Remaining Time
+sprint = select
+sprint.label = Sprint
+sprint.value = 
+story_priority = select
+story_priority.label = Importance
+story_priority.options = |Mandatory|Linear|Exciter
+story_priority.value = 
+
+[ticket-workflow]
+accept = new,assigned,accepted,reopened -> accepted
+accept.operations = set_owner_to_self
+accept.permissions = TICKET_MODIFY
+leave = * -> *
+leave.default = 1
+leave.operations = leave_status
+reassign = new,assigned,accepted,reopened -> assigned
+reassign.operations = set_owner
+reassign.permissions = TICKET_MODIFY
+reopen = closed -> reopened
+reopen.operations = del_resolution
+reopen.permissions = TICKET_CREATE
+resolve = new,assigned,accepted,reopened -> closed
+resolve.operations = set_resolution
+resolve.permissions = TICKET_MODIFY
+
+[timeline]
+abbreviated_messages = True
+changeset_collapse_events = false
+changeset_long_messages = false
+changeset_show_files = 0
+default_daysback = 30
+max_daysback = 90
+newticket_formatter = oneliner
+ticket_show_details = false
+
+[trac]
+auth_cookie_lifetime = 0
+auth_cookie_path = 
+authz_file = 
+authz_module_name = 
+auto_preview_timeout = 2.0
+auto_reload = False
+backup_dir = db
+base_url = 
+check_auth_ip = false
+database = sqlite:db/trac.db
+debug_sql = False
+default_charset = utf-8
+default_date_format = 
+default_dateinfo_format = relative
+default_handler = WikiModule
+default_language = fr
+default_timezone = 
+genshi_cache_size = 128
+htdocs_location = 
+ignore_auth_case = false
+jquery_location = 
+jquery_ui_location = 
+jquery_ui_theme_location = 
+mainnav = wiki, timeline, roadmap, browser, tickets, newticket, search
+metanav = login, logout, prefs, help, about
+mysqldump_path = mysqldump
+never_obfuscate_mailto = false
+permission_policies = AgiloPolicy, DefaultPermissionPolicy,
+LegacyAttachmentPolicy
+permission_store = DefaultPermissionStore
+pg_dump_path = pg_dump
+repository_dir = /srv/trac/admins
+repository_sync_per_request = (default)
+repository_type = git
+resizable_textareas = true
+secure_cookies = False
+show_email_addresses = false
+show_ip_addresses = false
+timeout = 20
+use_base_url_for_redirect = False
+use_xsendfile = false
+
+[versioncontrol]
+allowed_repository_dir_prefixes = 
+
+[wiki]
+ignore_missing_pages = false
+max_size = 262144
+render_unsafe_content = false
+safe_schemes = cvs, file, ftp, git, irc, http, https, news, sftp, smb, ssh,
+svn, svn+ssh
+split_page_names = false
+      </pre>
+      Prise en compte des modifications
+      <pre>
+      trac-admin /srv/trac/admins upgrade
+      </pre>
+      </p>
+
+
+      <p><u>Exécution</u></p>
+      <p>
+      <pre>
+        tracd --port 8000 --auth="*,/srv/trac/admins/.htpasswd,cagou.net" /srv/trac/admins
+      </pre>
+      </p>
+
+
+    </div> <!-- /container -->
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="assets/js/jquery.js"></script>
+    <script src="assets/js/bootstrap.js"></script>
+
+  </body>
+</html>
