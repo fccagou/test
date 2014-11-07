@@ -2,6 +2,8 @@
 import os
 from cgi import parse_qs
 
+import socket
+
 virtenv = os.environ['APPDIR'] + '/virtenv/'
 os.environ['PYTHON_EGG_CACHE'] = os.path.join(virtenv, 'lib/python2.6/site-packages')
 virtualenv = os.path.join(virtenv, 'bin/activate_this.py')
@@ -13,258 +15,129 @@ except IOError:
 # IMPORTANT: Put any additional includes below this line.  If placed above this
 # line, it's possible required libraries won't be in your searchable path
 # 
+
+
+
+def myip (environ):
+    if environ.get('HTTP_X_FORWARDED_FOR') and len(environ['HTTP_X_FORWARDED_FOR']):
+        return environ['HTTP_X_FORWARDED_FOR']
+    return  environ['REMOTE_ADDR']
+
+
+def db_host_store (host, ip):
+
+    with open("%s/%s" %(ip_dir,host), 'w') as f:
+        f.write(ip)
+        f.close()
+
+def db_host_get (host):
+    return open("%s/%s" %(ip_dir, host),'r').read()
+
+def db_host_list ():
+    return ( h for h in os.listdir(ip_dir) )
+
+
+
+
 data_dir=os.getenv('OPENSHIFT_DATA_DIR')
+db_dir=os.path.join(data_dir, 'db')
+ip_dir=os.path.join(db_dir, 'ip')
+
+if not os.path.exists(ip_dir):
+    os.makedirs(ip_dir)
+    # move old files
+    for h in os.listdir(data_dir):
+        if h.endswith('ip.txt'):
+            db_host_store(h[:-6], open(os.path.join(data_dir, h),'r').read())
+            os.unlink(h)
+
+
+
 
 def application(environ, start_response):
-        static_dir="%s/static" % (environ['DOCUMENT_ROOT'])
-	ctype = 'text/plain'
-	if environ['PATH_INFO'] == '/health':
-		response_body = "1"
+    static_dir="%s/static" % (environ['DOCUMENT_ROOT'])
+    ctype = 'text/plain'
+    if environ['PATH_INFO'] == '/health':
+        response_body = "1"
 
-	elif environ['PATH_INFO'] == '/myip':
-                if environ.get('HTTP_X_FORWARDED_FOR') and len(environ['HTTP_X_FORWARDED_FOR']):
-                    response_body = environ['HTTP_X_FORWARDED_FOR']
-                else:
-                    response_body = environ['REMOTE_ADDR']
-	elif environ['PATH_INFO'] == '/myip2':
-                if environ.get('HTTP_X_FORWARDED_FOR') and len(environ['HTTP_X_FORWARDED_FOR']):
-                    response_body = environ['HTTP_X_FORWARDED_FOR']
-                else:
-                    response_body = environ['REMOTE_ADDR']
+    elif environ['PATH_INFO'] == '/myip':
+        response_body = myip(environ)
 
-                query = parse_qs(environ['QUERY_STRING'])
+    elif environ['PATH_INFO'] == '/myip2':
+        ip = myip(environ)
+        response_body = ip
+
+        query = parse_qs(environ['QUERY_STRING'])
+
+        try:
+            host=query.get('host', [''])[0]
+            if len(host) == 0:
+                host = socket.gethostbyaddr(ip)[0]
+
+            db_host_store(host, ip)
+
+
+        except Exception as e:
+            response_body = ['%s: %s' % (key, value)
+                for key, value in sorted(environ.items())]
+            response_body = '\n'.join(response_body)
+            response_body = '\n'.join([response_body, str(e)])
+
+    elif environ['PATH_INFO'] == '/getip':
+        response_body = ''
+        query = parse_qs(environ['QUERY_STRING'])
+
+        host=query.get('host', [''])[0]
+
+        if len(host) == 0 or host == "all":
+
+            for h in db_host_list ():
                 try:
-                    host=query.get('host', [''])[0]
-                    with open("%s/%sip.txt" %(data_dir,host), 'w') as f:
-                        f.write(response_body)
-			f.close()
-
+                    response_body += "%s: %s\n" %(h, db_host_get(h))
                 except Exception as e:
-                    response_body = ['%s: %s' % (key, value)
-                        for key, value in sorted(environ.items())]
-                    response_body = '\n'.join(response_body)
-                    response_body = '\n'.join([response_body, str(e)])
-
-	elif environ['PATH_INFO'] == '/getip':
-                query = parse_qs(environ['QUERY_STRING'])
-
-                host=query.get('host', [''])[0]
-
-                response_body = ''
-                if host == "all":
-
-                     os.chdir(data_dir)
-                     for h in os.listdir('.'):
-                         if h.endswith('ip.txt'):
-                             h=h[:-6]
-                             try:
-                                 response_body += "%s: %s\n" %(h,
-                                         open("%s/%sip.txt" %(data_dir,
-                                             h),'r').read())
-                             except Exception as e:
-                                 response_body = str(e)
-                else:
-                    try:
-                        response_body = open("%s/%sip.txt" %(data_dir, host),'r').read()
-                    except Exception as e:
-                        response_body = str(e)
-
-
-	elif environ['PATH_INFO'] == '/env':
-		response_body = ['%s: %s' % (key, value)
-                    for key, value in sorted(environ.items())]
-		response_body = '\n'.join(response_body)
-
-        elif environ['PATH_INFO'] == "/scuba":
-	        try:
-		    ctype = 'text/html'
-		    response_body = open("%s/%s" %(static_dir, 'index.html'),'r').read()
-		except Exception as e:
-		    response_body = str(e)
+                    response_body += "%s: ERROR(%s)" % (h, str(e))
         else:
-#        elif environ['PATH_INFO'].startswith("/static/"):
-                filename='/'.join(environ['PATH_INFO'].split('/')[1:])
-                if len(filename) == 0:
-                    filename = 'index.html'
+            try:
+                response_body = db_host_get(host)
+            except Exception as e:
+                response_body = str(e)
 
-                ext = filename.split('.')[-1]
 
-                if ext == 'html':
-		    ctype = 'text/html'
-                elif ext == 'css':
-                    ctype = 'text/css'
+    elif environ['PATH_INFO'] == '/env':
+	response_body = ['%s: %s' % (key, value)
+            for key, value in sorted(environ.items())]
+	response_body = '\n'.join(response_body)
 
-	        try:
-		    response_body = open("%s/%s" %(static_dir, filename) ,'r').read()
-		except Exception as e:
-		    response_body = str(e)
-#	else:
-#		ctype = 'text/html'
-#		response_body = '''<!doctype html>
-#<html lang="en">
-#<head>
-#  <meta charset="utf-8">
-#  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-#  <title>Welcome to OpenShift</title>
-#  <style>
-#  html { 
-#  background: black; 
-#  }
-#  body {
-#    background: #333;
-#    background: -webkit-linear-gradient(top, black, #666);
-#    background: -o-linear-gradient(top, black, #666);
-#    background: -moz-linear-gradient(top, black, #666);
-#    background: linear-gradient(top, black, #666);
-#    color: white;
-#    font-family: "Helvetica Neue",Helvetica,"Liberation Sans",Arial,sans-serif;
-#    width: 40em;
-#    margin: 0 auto;
-#    padding: 3em;
-#  }
-#  a {
-#    color: white;
-#  }
-#
-#  h1 {
-#    text-transform: capitalize;
-#    -moz-text-shadow: -1px -1px 0 black;
-#    -webkit-text-shadow: 2px 2px 2px black;
-#    text-shadow: -1px -1px 0 black;
-#    box-shadow: 1px 2px 2px rgba(0, 0, 0, 0.5);
-#    background: #CC0000;
-#    width: 22.5em;
-#    margin: 1em -2em;
-#    padding: .3em 0 .3em 1.5em;
-#    position: relative;
-#  }
-#  h1:before {
-#    content: '';
-#    width: 0;
-#    height: 0;
-#    border: .5em solid #91010B;
-#    border-left-color: transparent;
-#    border-bottom-color: transparent;
-#    position: absolute;
-#    bottom: -1em;
-#    left: 0;
-#    z-index: -1000;
-#  }
-#  h1:after {
-#    content: '';
-#    width: 0;
-#    height: 0;
-#    border: .5em solid #91010B;
-#    border-right-color: transparent;
-#    border-bottom-color: transparent;
-#    position: absolute;
-#    bottom: -1em;
-#    right: 0;
-#    z-index: -1000;
-#  }
-#  h2 { 
-#    margin: 2em 0 .5em;
-#    border-bottom: 1px solid #999;
-#  }
-#
-#  pre {
-#    background: black;
-#    padding: 1em 0 0;
-#    -webkit-border-radius: 1em;
-#    -moz-border-radius: 1em;
-#    border-radius: 1em;
-#    color: #9cf;
-#  }
-#
-#  ul { 
-#    margin: 0; 
-#    padding: 0;
-#  }
-#  li {
-#    list-style-type: none;
-#    padding: .5em 0;
-#  }
-#
-#  .brand {
-#    display: block;
-#    text-decoration: none;
-#  }
-#  .brand .brand-image {
-#    float: left;
-#    border:none;
-#  }
-#  .brand .brand-text {
-#    float: left;
-#    font-size: 24px;
-#    line-height: 24px;
-#    padding: 4px 0;
-#    color: white;
-#    text-transform: uppercase;
-#  }
-#  .brand:hover,
-#  .brand:active {
-#    text-decoration: underline;
-#  }
-#
-#  .brand:before,
-#  .brand:after {
-#    content: ' ';
-#    display: table;
-#  }
-#  .brand:after {
-#    clear: both;
-#  }
-#  </style>
-#</head>
-#<body>
-#  <a href="http://openshift.com" class="brand">
-#    <img class="brand-image"
-#      alt="OpenShift logo"
-#      src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAgCAYAAABU1PscAAAAAXNSR0IArs4c6QAAAAZiS0dEAAAAAAAA+UO7fwAAAAlwSFlzAAARHgAAER4B27UUrQAABUhJREFUWMPFWFlsVGUU/s5/70zbaSltA7RQpJ2lC9CFkQkWIgSJxkAhRA0JCYFq4hPG6JsoGKNCtPigxqhvGlPAuGIaE4igNaElbIW2yNL2tkOtTYGWCqWF2e79fCh7p1Bmpnge/3vuOef7z/nPJiTxMHS6pMRuu6YqFNTTAJYSyAU4GZB0AH2AGCANAfc5Qrba6T3HrmECScYLwCioSIcV2AjidQDZ45Q/LJRaWrLV03X89P8GwHB5XwG4DcDkGPWEBKimNrzN094efGQAzjm9GWHFr4R4LiHKgFaSL3r8zYcmHEBbkW+KFo7UEyhKsNeHlMgyV8eJo4kQpqId9ub6HCoc+XWcxl8lcBTATwDax8GfZtHa054/f/bNg8ZcnyOhHjBc834E8MJ9/vML8aYZQX1hd1PP3WFXkhMRfYkIlpOoGomc0WRRTnch+XAQWG2KTNJNLbuy68C/cQMwXOWrAKkdgz8A8kMdg9X5fn/gQcI7POXLaMk3AGbe/P8SbF0D1KcGRGXpIJJpIQkWBHhnsf/Ie3GF0DmnMxmQT8bg7RellXr8ze+Ox3gAcBvNf+iUUhH5FODLSvScAerDGpiVxTAyGUYKzICA34nCwbhDyHB7N4L8PAofhVzh9jfvjffR/ZZTnupIsR8G0C9EjW7Tfnii/dBgrPL0u83kmjHy33Z3Z/zG97uKi7xpWA8GHZpE1mcZRne8MvXblfbxqQAWR+Fp+mdW5hZPjAqu5JVlhrTwOgrXi2ABbjjchF4FYGvi0qhprgagjYod4OeldXWRWBUEtdBjEH4mwIJ7vF2V4Dqgot0+NEFdPAqmdZ5tAXA8Slx6LrpKsxMHQJge5ft1v0oe2OOu+PZ39+LCOFqImqiXo8JzAeBkXlnmnoKK9LgACJl2R9gELsHW1saUwKCpnbIoa8UMTokVgGXJmSjHkfNWUlWDy9d6USVdyoiEF8b1iElxQKHuPG1D/bCtVEBhCiykMQQFgCK2mN2sSx+tkdcbhGq7wKSkK9RnmsCG2xVSLsflAR1S6eloWhawtF8yGJGskSJDBdQR8pIjZMXcfFmm1gOg2lRaSRdT1AD1PBPQbCAyxcRMifCpc41HEtILNbh9s8SSvYTUmBp2LDGOdCOB1OD0XbeByWliwY5bugc9nU2T4wqhCx7PNAV9bSGwARp3TzVaP0j09GQUzJubLUgefY3SEHMh63MVr4FIlYL+7C1AlCwAmxM+/plYy6hhgN2xp1HBawAr72krnH3uoicTaXyHx7uIwKZoT0QhUhszAAI7x7ivL0a60/jp77yyTFrWt6N6rxE99c7OkxdiBhC2y/cAorXHpama/aNG8dkOO32b6p3zTzXmeysfPu4LkkKafA3IrGjfCfPtuGfiPlfx+xBsuWtwpa3zIuy2YaoZ5o0eSQc5TVnb53aeeAuk9eBtRvkqUH0MoTsqA7nL429eFzeA3lyfQ08eaiNgCrjTYNozQ1S+WyUfQCosTLqZ+oiDUNwhggPujpZTuCMXGwUV6cJgKYnNIJffR3df2NLLZ5871puQrUR//pzpU7rOnAfJP53eDELrsoPpk4RIGRn5xqIBAAdBOCAoBjBjPJsJUdZSt9HSOGFrld5cn2M4KbwfkIUJzqYhQlYWdJ7YN2FrFQCY3nPsmk61AuSuRNYyUdaiRBk/7tViR37Zcir1JYC8WNshgjWWPfhq0dmzVx/5bhQAWnLKU1Md8gZHOsjxAgmD2GEKq4s6m1sxASQPu16HiBh53goqPg9ac0TEcwNQEOBlQAZEcMgC94dDZt2c7r8GMIH0H43ZRDC51RVCAAAAAElFTkSuQmCC">
-#    <div class="brand-text"><strong>Open</strong>Shift</div>
-#  </a>
-#  <h1>
-#    Coucou Guigui !
-#  </h1>
-#  <p>
-#    Place your application here
-#  </p>
-#  <p>
-#    In order to commit to your new project, go to your projects git repo (created with the rhc app create command).  Make your changes, then run:
-#  </p>
-#  <pre>
-#    git commit -a -m 'Some commit message'
-#    git push
-#  </pre>
-#  <p>
-#    Then reload this page.
-#  </p>
-#  
-#  <h2>
-#    What's next?
-#  </h2>
-#  <ul>
-#    <li>
-#      Why not visit us at <a href="http://openshift.redhat.com">http://openshift.redhat.com</a>, or
-#    </li>
-#    <li>
-#      You could get help in the <a href="http://www.redhat.com/openshift">OpenShift forums</a>, or
-#    </li>
-#    <li>
-#      You're welcome to come chat with us in our IRC channel at #openshift on freenode.net
-#    </li>
-#  </ul>
-#  <p>
-#    <img src="http://www.last-video.com/wp-content/uploads/2012/08/smiley-facebook-smileys-et-emoticones-pour-facebook.jpg" />
-#  </p>
-#</body>
-#</html>'''
+    elif environ['PATH_INFO'] == "/scuba":
+        try:
+	    ctype = 'text/html'
+	    response_body = open("%s/%s" %(static_dir, 'index.html'),'r').read()
+	except Exception as e:
+	    response_body = str(e)
 
-	status = '200 OK'
-	response_headers = [('Content-Type', ctype), ('Content-Length', str(len(response_body)))]
-	#
-	start_response(status, response_headers)
-	return [response_body]
+    elif environ['PATH_INFO'].startswith("/static/"):
+        filename='/'.join(environ['PATH_INFO'].split('/')[1:])
+        if len(filename) == 0:
+            filename = 'index.html'
+
+        ext = filename.split('.')[-1]
+
+        if ext == 'html':
+	    ctype = 'text/html'
+        elif ext == 'css':
+            ctype = 'text/css'
+
+        try:
+	    response_body = open("%s/%s" %(static_dir, filename) ,'r').read()
+	except Exception as e:
+	    response_body = str(e)
+
+
+    status = '200 OK'
+    response_headers = [('Content-Type', ctype), ('Content-Length', str(len(response_body)))]
+    #
+    start_response(status, response_headers)
+    return [response_body]
 
 #
 # Below for testing only
@@ -273,4 +146,5 @@ if __name__ == '__main__':
 	from wsgiref.simple_server import make_server
 	httpd = make_server('localhost', 8051, application)
 	# Wait for a single request, serve it and quit.
+        print "Waiting for request on http://localhost:8051\n" 
 	httpd.handle_request()
