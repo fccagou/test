@@ -55,7 +55,7 @@ def application(environ, start_response):
                      os.chdir(data_dir)
                      for h in os.listdir('.'):
                          if h.endswith('ip.txt'):
-                             h=h[:7]
+                             h=h[:-6]
                              try:
                                  response_body += "%s: %s\n" %(h,
                                          open("%s/%sip.txt" %(data_dir,
