@@ -45,13 +45,6 @@ ip_dir=os.path.join(db_dir, 'ip')
 
 if not os.path.exists(ip_dir):
     os.makedirs(ip_dir)
-    # move old files
-    for h in os.listdir(data_dir):
-        if h.endswith('ip.txt'):
-            db_host_store(h[:-6], open(os.path.join(data_dir, h),'r').read())
-            os.unlink(h)
-
-
 
 
 def application(environ, start_response):
