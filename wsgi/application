@@ -50,8 +50,9 @@ def application(environ, start_response):
 
                 host=query.get('host', [''])[0]
 
-
+                response_body = ''
                 if host == "all":
+
                      os.chdir(data_dir)
                      for h in os.listdir('.'):
                          if h.endswith('ip.txt'):
