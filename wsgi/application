@@ -47,12 +47,26 @@ def application(environ, start_response):
 
 	elif environ['PATH_INFO'] == '/getip':
                 query = parse_qs(environ['QUERY_STRING'])
+
                 host=query.get('host', [''])[0]
-	        try:
-		    response_body = open("%s/%sip.txt" %(data_dir, host),'r').read()
-		except Exception as e:
-		    response_body = str(e)
-	
+
+
+                if host == "all":
+                     os.chdir(data_dir)
+                     for h in os.listdir('.'):
+                         try:
+                             response_body += "%s: %s\n" %(h,
+                                     open("%s/%sip.txt" %(data_dir,
+                                         h),'r').read())
+                         except Exception as e:
+                             response_body = str(e)
+                else:
+                    try:
+                        response_body = open("%s/%sip.txt" %(data_dir, host),'r').read()
+                    except Exception as e:
+                        response_body = str(e)
+
+
 	elif environ['PATH_INFO'] == '/env':
 		response_body = ['%s: %s' % (key, value)
                     for key, value in sorted(environ.items())]
