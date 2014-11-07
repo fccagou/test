@@ -54,12 +54,14 @@ def application(environ, start_response):
                 if host == "all":
                      os.chdir(data_dir)
                      for h in os.listdir('.'):
-                         try:
-                             response_body += "%s: %s\n" %(h,
-                                     open("%s/%sip.txt" %(data_dir,
-                                         h),'r').read())
-                         except Exception as e:
-                             response_body = str(e)
+                         if h.endswith('ip.txt'):
+                             h=h[:6]
+                             try:
+                                 response_body += "%s: %s\n" %(h,
+                                         open("%s/%sip.txt" %(data_dir,
+                                             h),'r').read())
+                             except Exception as e:
+                                 response_body = str(e)
                 else:
                     try:
                         response_body = open("%s/%sip.txt" %(data_dir, host),'r').read()
