@@ -1,4 +1,5 @@
 from setuptools import setup
+# -*- coding: utf-8 -*-
 
 setup(name='MyFirstApp',
       version='1.0',
