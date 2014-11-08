@@ -120,7 +120,7 @@ def application(environ, start_response):
         ctype = mimetypes.guess_type(real_file_path)[0]
 
         try:
-	    response_body = open(os.path.join(static_dir, filename, 'toto') ,'r').read()
+	    response_body = open(os.path.join(static_dir, filename) ,'r').read()
 	except Exception as e:
             try:
                 if query.get('debug'):
