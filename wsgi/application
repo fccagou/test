@@ -25,20 +25,73 @@ def myip (environ):
         return environ['HTTP_X_FORWARDED_FOR']
     return  environ['REMOTE_ADDR']
 
+# =============================================================================
+# DB
+# =============================================================================
+#
+#   db_dir/db/key
+#
 
-def db_host_store (host, ip):
+def db_get(db,key, default):
+    try:
+        return open(os.path.join(db_dir,db,key),'r').read()
+    except:
+        return default
 
-    with open("%s/%s" %(ip_dir,host), 'w') as f:
-        f.write(ip)
+def db_set(db,key, value):
+    with open(os.path.join(db_dir,db,key), 'w') as f:
+        f.write(value)
         f.close()
 
+def db_keys(db):
+    return ( k for k in os.listdir(os.path.join(db_dir, db)) )
+
+# ------------------------------------------------------------
+#  IP DB
+# ------------------------------------------------------------
+def db_host_store (host, ip):
+    db_set('ip', host, ip)
+
+
 def db_host_get (host):
-    return open("%s/%s" %(ip_dir, host),'r').read()
+    return db_get('ip', host, '')
 
 def db_host_list ():
-    return ( h for h in os.listdir(ip_dir) )
+    return db_keys('ip')
 
 
+# ------------------------------------------------------------
+#  ARDUINO DB
+# ------------------------------------------------------------
+
+def db_arduino_get(key,default='undef'):
+    return db_get('arduino', key, default)
+
+def db_arduino_set(key,value):
+    db_set('arduino', key, value)
+
+
+
+def arduino_led_show (led_nb):
+    return db_arduino_get(led_nb,0)
+
+
+def arduino_led_set (led_nb, value):
+    return db_arduino_set(led_nb,value)
+
+
+
+def arduino_state ():
+    ar_state = {}
+    for k in db_keys('ar_dir'):
+        ar_state[k] = db_arduino_get(k)
+
+    return ar_state
+
+
+# =============================================================================
+#   SETUP
+# =============================================================================
 
 
 data_dir=os.getenv('OPENSHIFT_DATA_DIR')
@@ -48,6 +101,14 @@ ip_dir=os.path.join(db_dir, 'ip')
 if not os.path.exists(ip_dir):
     os.makedirs(ip_dir)
 
+ar_dir=os.path.join(db_dir, 'arduino')
+if not os.path.exists(ar_dir):
+    os.makedirs(ar_dir)
+
+
+# =============================================================================
+#   APPLICATION
+# =============================================================================
 
 def application(environ, start_response):
 
@@ -104,6 +165,31 @@ def application(environ, start_response):
             for key, value in sorted(environ.items())]
 	response_body = '\n'.join(response_body)
 
+    elif environ['PATH_INFO'].startswith('/arduino/'):
+        cmd = environ['PATH_INFO'].split('/')
+
+        subject = cmd[2]
+        action = cmd[3]
+
+        if action == 'get':
+            # Get action
+            response_body = db_arduino_get(subject)
+        elif action == 'set':
+            # Set action
+            db_arduino_set(subject,cmd[4])
+            response_body = 'value set'
+        elif action == 'state':
+            # Set action
+            ar_state = arduino_state ()
+            for k in ar_state:
+                response_body += "%s: %\n" % (k, ar_state[k])
+        else:
+            # bad action
+            if query.get('debug'):
+                response_body = "subject: %s\naction: %s\n" % (subject, action)
+            else:
+                response_body = "Sorry, I don't understand :)"
+
     else:
 
         if environ['PATH_INFO'].startswith("/static/"):
@@ -146,7 +232,9 @@ def application(environ, start_response):
 #
 if __name__ == '__main__':
 	from wsgiref.simple_server import make_server
-	httpd = make_server('localhost', 8051, application)
+	httpd = make_server('', 8051, application)
 	# Wait for a single request, serve it and quit.
         print "Waiting for request on http://localhost:8051\n" 
-	httpd.handle_request()
+	#httpd.handle_request()
+	httpd.serve_forever()
+
