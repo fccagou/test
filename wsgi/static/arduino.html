@@ -13,6 +13,18 @@
       body {
         padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
       }
+
+      table#arduino tr:nth-child(even) {
+              background-color: #eee;
+      }
+      table#arduino tr:nth-child(odd) {
+             background-color:#fff;
+      }
+      table#arduino th{
+          background-color: #090;
+                  color: white;
+      }
+
     </style>
     <link href="assets/css/bootstrap-responsive.css" rel="stylesheet">
 
@@ -24,7 +36,7 @@
     <!-- Fav and touch icons -->
     <link rel="apple-touch-icon-precomposed" sizes="144x144" href="ico/apple-touch-icon-144-precomposed.png">
     <link rel="apple-touch-icon-precomposed" sizes="114x114" href="ico/apple-touch-icon-114-precomposed.png">
-      <link rel="apple-touch-icon-precomposed" sizes="72x72" href="ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="ico/apple-touch-icon-72-precomposed.png">
                     <link rel="apple-touch-icon-precomposed" href="ico/apple-touch-icon-57-precomposed.png">
                                    <link rel="shortcut icon" href="ico/favicon.png">
   </head>
@@ -95,13 +107,61 @@
       <p><a
           href="https://github.com/fccagou/arduino/tree/master/webClient"
           target="github">Code source</a>
-    </div> <!-- /container -->
 
+
+
+    <script>
+
+    function ar_init_interface() {
+        update_interface('led1', 'arduino_led1');
+    }
+
+    function arget (key) {
+        var req = new XMLHttpRequest();
+        req.open('GET', '/arduino/'+key+'/get', false); 
+        req.send(null);
+        return req.responseText;
+    }
+
+    function update_interface (key, entry) {
+        document.getElementById(entry).innerHTML =arget(key)
+    }
+
+//    <p id="demo"></p>
+//    var text = '{"name":"John Johnson","street":"Oslo West 16","phone":"555 1234567"}'
+//
+//    var obj = JSON.parse(text);
+//
+//    document.getElementById("demo").innerHTML =
+//    obj.name + "<br>" +
+//    obj.street + "<br>" +
+//    obj.phone;
+
+    </script>
+
+    
+    <table id="arduino" width="200">
+        <caption>I/O states</caption>
+        <tr>
+            <th>I/O name</th>
+            <th>Value</th>
+        </tr>
+        <tr>
+            <td>led1</td> 
+            <td id="arduino_led1">undef</td>
+        </tr>
+    </table>
+    <p></p>
+    <button type="button" onclick="update_interface('led1', 'arduino_led1')">Update</button>
+
+
+    </div> <!-- /container -->
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="assets/js/jquery.js"></script>
     <script src="assets/js/bootstrap.js"></script>
+    <script> ar_init_interface() ; </script>
 
   </body>
 </html>
