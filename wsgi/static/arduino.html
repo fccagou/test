@@ -112,9 +112,9 @@
 
     <script>
 
-    function ar_init_interface() {
-        update_interface('led1', 'arduino_led1');
-    }
+
+    var led_state=["media/led_white.png", "media/led_red.png"];
+    var led_msg=["off", "on"];
 
     function arget (key) {
         var req = new XMLHttpRequest();
@@ -123,8 +123,15 @@
         return req.responseText;
     }
 
-    function update_interface (key, entry) {
-        document.getElementById(entry).innerHTML =arget(key)
+
+    function led_update(led,entry) {
+        state = arget(led);
+        document.getElementById(entry).src=led_state[state];
+        document.getElementById(led+"_description").innerHTML=led+" is "+led_msg[state];
+    }
+
+    function update_label (key, entry) {
+        document.getElementById(entry).innerHTML=arget(key);
     }
 
 //    <p id="demo"></p>
@@ -137,22 +144,60 @@
 //    obj.street + "<br>" +
 //    obj.phone;
 
+    var auto_update;
+    var is_auto_check = false;
+
+    function ar_manual_check() {
+        clearInterval(auto_update);
+        ar_update_interface();
+        document.getElementById("ar_update").innerHTML = "auto update off";
+        is_auto_check = false;
+    }
+
+    function ar_auto_check() {
+        auto_update = setInterval(function () { ar_update_interface() }, 10000); 
+        document.getElementById("ar_update").innerHTML = "auto update on";
+        is_auto_check = true;
+    }
+
+    function ar_switch_check () {
+
+        if (is_auto_check) {
+            ar_manual_check ();
+        } else {
+            ar_auto_check ();
+        }
+    }
+
+
+    function ar_update_interface() {
+        led_update("led1", "arduino_led1");
+        led_update("led2", "arduino_led2");
+    }
+
     </script>
 
     
-    <table id="arduino" width="200">
+    <table id="arduino" width="300px">
         <caption>I/O states</caption>
         <tr>
             <th>I/O name</th>
             <th>Value</th>
+            <th>Informations</th>
         </tr>
         <tr>
             <td>led1</td> 
-            <td id="arduino_led1">undef</td>
+            <td> <img id="arduino_led1" src="" width="15px" /> </td>
+            <td id="led1_description"></td>
+        </tr>
+        <tr>
+            <td>led2</td> 
+            <td> <img id="arduino_led2" src="" width="15px" /> </td>
+            <td id="led2_description" ></td>
         </tr>
     </table>
     <p></p>
-    <button type="button" onclick="update_interface('led1', 'arduino_led1')">Update</button>
+    <button type="button" id="ar_update" onclick="ar_switch_check()"></button>
 
 
     </div> <!-- /container -->
@@ -161,7 +206,9 @@
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="assets/js/jquery.js"></script>
     <script src="assets/js/bootstrap.js"></script>
-    <script> ar_init_interface() ; </script>
+    <script>
+        ar_manual_check();
+    </script>
 
   </body>
 </html>
