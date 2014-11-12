@@ -204,29 +204,28 @@ def application(environ, start_response):
 
         real_file_path = os.path.join(static_dir, filename)
 
-        response_body = real_file_path
 
-#        if not filename or len(filename) == 0 or not os.path.isfile(real_file_path):
-#            filename = 'index.html'
-#            real_file_path=os.path.join(static_dir,filename)
-#
-#        ctype = mimetypes.guess_type(real_file_path)[0]
-#
-#        try:
-#	    response_body = open(os.path.join(static_dir, filename) ,'r').read()
-#	except Exception as e:
-#            try:
-#                if query.get('debug'):
-#                    error_msg = str(e)
-#                else:
-#                    error_msg = '/!\ 1 error occurs ...'
-#                    
-#                response_body = open(os.path.join(static_dir, 'error.html')
-#                        ,'r').read().replace('ERROR_TAG',  error_msg)
-#                
-#            except Exception as r:
-#	        response_body = str(r)
-#
+        if not filename or len(filename) == 0 or not os.path.isfile(real_file_path):
+            filename = 'index.html'
+            real_file_path=os.path.join(static_dir,filename)
+
+        ctype = mimetypes.guess_type(real_file_path)[0]
+
+        try:
+	    response_body = open(os.path.join(static_dir, filename) ,'r').read()
+	except Exception as e:
+            try:
+                if query.get('debug'):
+                    error_msg = str(e)
+                else:
+                    error_msg = '/!\ 1 error occurs ...'
+                    
+                response_body = open(os.path.join(static_dir, 'error.html')
+                        ,'r').read().replace('ERROR_TAG',  error_msg)
+                
+            except Exception as r:
+	        response_body = str(r)
+
 
     status = '200 OK'
     response_headers = [('Content-Type', ctype), ('Content-Length', str(len(response_body)))]
