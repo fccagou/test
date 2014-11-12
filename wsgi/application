@@ -113,6 +113,7 @@ if not os.path.exists(ar_dir):
 def application(environ, start_response):
 
     static_dir=os.path.join(environ['DOCUMENT_ROOT'], 'static')
+
     ctype = 'text/plain'
     query = parse_qs(environ['QUERY_STRING'])
 
@@ -193,11 +194,17 @@ def application(environ, start_response):
     else:
 
         if environ['PATH_INFO'].startswith("/static/"):
-            filename='/'.join(environ['PATH_INFO'].split('/')[1:])
+            filename='/'.join(environ['PATH_INFO'].split('/')[2:])
         else:
-            filename = environ['PATH_INFO'][1:]
+            filename = environ['PATH_INFO']
 
-        real_file_path=os.path.join(static_dir,filename)
+        if filename.startswith('/'):
+            filename = filename[1:]
+
+
+        real_file_path = os.path.join(static_dir, filename)
+
+        response_body = real_file_path
 
         if not filename or len(filename) == 0 or not os.path.isfile(real_file_path):
             filename = 'index.html'
