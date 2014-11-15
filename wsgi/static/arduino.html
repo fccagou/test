@@ -113,8 +113,28 @@
     <script>
 
 
-    var led_state=["img/led_white.png", "img/led_red.png"];
+    var led_state_display=["img/led_white.png", "img/led_red.png",
+    "img/led_green.png"];
     var led_msg=["off", "on"];
+    var led_state=[0,0];
+
+
+
+    function arset (key, value) {
+        var req = new XMLHttpRequest();
+        req.open('GET', '/arduino/'+key+'/set/'+value, false); 
+        req.send(null);
+        return req.responseText;
+    }
+
+        
+    function led_on(led) {
+        arset(led,1);
+    }
+
+    function led_off(led) {
+        arset(led,0);
+    }
 
     function arget (key) {
         var req = new XMLHttpRequest();
@@ -124,11 +144,31 @@
     }
 
 
-    function led_update(led,entry) {
-        state = arget(led);
-        document.getElementById(entry).src=led_state[state];
-        document.getElementById(led+"_description").innerHTML=led+" is "+led_msg[state];
+    function led_switch(led) {
+        if (led_state[led-1] == 0)
+            led_on("led"+led);
+        else
+            led_off("led"+led);
+
+        //TODO: do not use arget because the value is yet known.
+        led_update(led);
     }
+
+    function led_update(led) {
+        led_name="led"+led;
+        state = arget(led_name);
+        led_state[led - 1]=state;
+
+        entry = "arduino_"+led_name;
+        if (state == 1)
+            document.getElementById(entry).src=led_state_display[led];
+        else
+            document.getElementById(entry).src=led_state_display[state];
+
+        document.getElementById(led_name+"_description").innerHTML=led_name+" is "+led_msg[state];
+    }
+
+
 
     function update_label (key, entry) {
         document.getElementById(entry).innerHTML=arget(key);
@@ -150,13 +190,13 @@
     function ar_manual_check() {
         clearInterval(auto_update);
         ar_update_interface();
-        document.getElementById("ar_update").innerHTML = "auto update off";
+        document.getElementById("ar_update").innerHTML = "auto update is off";
         is_auto_check = false;
     }
 
     function ar_auto_check() {
-        auto_update = setInterval(function () { ar_update_interface() }, 10000); 
-        document.getElementById("ar_update").innerHTML = "auto update on";
+        auto_update = setInterval(function () { ar_update_interface() }, 1000); 
+        document.getElementById("ar_update").innerHTML = "auto update is on";
         is_auto_check = true;
     }
 
@@ -171,8 +211,8 @@
 
 
     function ar_update_interface() {
-        led_update("led1", "arduino_led1");
-        led_update("led2", "arduino_led2");
+        led_update(1);
+        led_update(2);
     }
 
     </script>
@@ -187,12 +227,14 @@
         </tr>
         <tr>
             <td>led1</td> 
-            <td> <img id="arduino_led1" src="" width="15px" /> </td>
+            <td> <img id="arduino_led1" src="" width="15px"
+                onclick="led_switch(1);"/> </td>
             <td id="led1_description"></td>
         </tr>
         <tr>
             <td>led2</td> 
-            <td> <img id="arduino_led2" src="" width="15px" /> </td>
+            <td> <img id="arduino_led2" src="" width="15px" 
+                onclick="led_switch(2);"/> </td>
             <td id="led2_description" ></td>
         </tr>
     </table>
@@ -207,6 +249,7 @@
     <script src="assets/js/jquery.js"></script>
     <script src="assets/js/bootstrap.js"></script>
     <script>
+        
         ar_manual_check();
     </script>
 
