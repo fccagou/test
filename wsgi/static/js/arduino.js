@@ -6,6 +6,12 @@ var led_msg=["off", "on"];
 var led_state=[0,0];
 
 
+function getmyip() {
+    var req = new XMLHttpRequest();
+    req.open('GET', '/myip');
+    req.send(null);
+    return req.responseText;
+}
 
 function arset (key, value) {
     var req = new XMLHttpRequest();
@@ -39,6 +45,9 @@ function led_switch(led) {
 
     //TODO: do not use arget because the value is yet known.
     led_update(led);
+
+    var ip = getmyip();
+    arset('switcher_led'+led, ip);
 }
 
 function led_update(led) {
@@ -47,12 +56,15 @@ function led_update(led) {
     led_state[led - 1]=state;
 
     entry = "arduino_"+led_name;
+    
+    switcher = arget('switcher_'+led_name);
+
     if (state == 1)
         document.getElementById(entry).src=led_state_display[led];
     else
         document.getElementById(entry).src=led_state_display[state];
 
-    document.getElementById(led_name+"_description").innerHTML=led_name+" is "+led_msg[state];
+    document.getElementById(led_name+"_description").innerHTML=led_name+" was switched "+led_msg[state]+" by "+switcher;
 }
 
 
@@ -105,3 +117,8 @@ function ar_update_interface() {
 //    obj.name + "<br>" +
 //    obj.street + "<br>" +
 //    obj.phone;
+//
+
+
+
+

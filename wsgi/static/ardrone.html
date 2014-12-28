@@ -13,6 +13,28 @@
       body {
         padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
       }
+
+      table#ar.drone 2.0 tr:nth-child(even) {
+              background-color: #eee;
+      }
+      table#ar.drone 2.0 tr:nth-child(odd) {
+             background-color:#fff;
+      }
+      table#ar.drone 2.0 th{
+          background-color: #090;
+                  color: white;
+      }
+
+      #ar_img { margin:3px; float:center;}
+      #ctrlcenter { margin:3px; float:left;}
+      #info { font-style: italic; }
+      #background { 
+          padding-top: 1em;
+          background:
+          url('http://ardrone2.parrot.com/static-ar2elite/images/theme/old-intro/drone_snow.png')
+          0 0;
+          width: 200px;
+      }
     </style>
     <link href="assets/css/bootstrap-responsive.css" rel="stylesheet">
 
@@ -24,7 +46,7 @@
     <!-- Fav and touch icons -->
     <link rel="apple-touch-icon-precomposed" sizes="144x144" href="ico/apple-touch-icon-144-precomposed.png">
     <link rel="apple-touch-icon-precomposed" sizes="114x114" href="ico/apple-touch-icon-114-precomposed.png">
-      <link rel="apple-touch-icon-precomposed" sizes="72x72" href="ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="ico/apple-touch-icon-72-precomposed.png">
                     <link rel="apple-touch-icon-precomposed" href="ico/apple-touch-icon-57-precomposed.png">
                                    <link rel="shortcut icon" href="ico/favicon.png">
   </head>
@@ -69,10 +91,10 @@
                 <li class="dropdown">
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown">Arduino<b class="caret"></b></a>
                   <ul class="dropdown-menu">
-                      <li><a href="arduino.html">My sketchs</a></li>
-                      <li><a href="http://www.arduino.cc/"
-                          target="arduino">Arduino web site</a></li>
-                  </ul>
+	              <li><a href="ar.drone 2.0.html">My sketchs</a></li>
+	              <li><a href="http://www.ar.drone 2.0.cc/"
+                          target="ar.drone 2.0">Arduino web site</a></li>
+		  </ul>
                 </li>
                 <li class="dropdown">
                   <a href="#" class="dropdown-toggle"
@@ -83,25 +105,25 @@
                           target="ar.drone 2.0">ar.drone 2.0 Web Site</a></li>
 		  </ul>
                 </li>
-
             </ul>
           </div><!--/.nav-collapse -->
         </div>
       </div>
-    </div>
+    </dv>
 
+    <div id="background" ><img
+        src="http://ardrone2.parrot.com/static-ar2elite/images/theme/old-intro/drone_snow.png"> </div>
     <div class="container">
-
-      <h3>Un petit site comme ça au passage ...</h3>
-      <p></p>
-      <img src="img/polynesie-makatea-300.jpg" />
-    </div> <!-- /container -->
-
+      <h3>Des trucs sur ar.drone 2.0</h3>
+      <p><a ref="http://www.nodecopter.com/" >nodecopter</a>: pour contrôler
+      son drone avec du nodejs. Ca fonctionne vraiment bien et c'est TRES
+      simple à mettre en oeuvre. 
+      </p>
+    </div>
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="assets/js/jquery.js"></script>
     <script src="assets/js/bootstrap.js"></script>
-
   </body>
 </html>
