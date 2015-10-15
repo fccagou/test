@@ -4,7 +4,7 @@ from cgi import parse_qs
 
 import socket
 import mimetypes
-
+import urllib2
 
 virtenv = os.environ['APPDIR'] + '/virtenv/'
 os.environ['PYTHON_EGG_CACHE'] = os.path.join(virtenv, 'lib/python2.6/site-packages')
@@ -160,6 +160,13 @@ def application(environ, start_response):
             except Exception as e:
                 response_body = str(e)
 
+    elif environ['PATH_INFO'] == '/iscagoualive':
+	try:
+		urllib2.urlopen('http://%s/' % (db_host_get('lenidducagou')))
+		response_body = '1'
+	except urllib2.HTTPError as e:
+		response_body = '0'
+	
 
     elif environ['PATH_INFO'] == '/env':
 	response_body = ['%s: %s' % (key, value)

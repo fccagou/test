@@ -106,8 +106,10 @@
     <script src="js/dns.js"></script>
 
     <script>
-		ip=dns_gethostbyname('lenidducagou')
-		document.getElementById('lenidducagou').href='http://'+ip+'/'
+		ip=isCagouAlive();
+		if (ip !="" ) {
+		   document.getElementById('lenidducagou').href='http://'+ip+'/';
+                }
     </script>
  
 
