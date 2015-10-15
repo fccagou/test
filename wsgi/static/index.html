@@ -95,6 +95,7 @@
       <h3>Un petit site comme ça au passage ...</h3>
       <p></p>
       <img src="img/polynesie-makatea-300.jpg" />
+      <p><a href="#" id="lenidducagou" >Le nid du Cagou</a></p>
     </div> <!-- /container -->
 
     <!-- Le javascript
@@ -102,6 +103,12 @@
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="assets/js/jquery.js"></script>
     <script src="assets/js/bootstrap.js"></script>
+    <script src="js/dns.js"></script>
+
+    <script>
+	document.getElementById('lenidducagou').href='http://'+gethostbyname('lenidducagou')+'/'
+    </script>
+ 
 
   </body>
 </html>
