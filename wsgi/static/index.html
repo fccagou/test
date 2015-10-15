@@ -29,7 +29,7 @@
                                    <link rel="shortcut icon" href="ico/favicon.png">
   </head>
 
-  <body>
+  <body >
 
     <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
@@ -106,7 +106,8 @@
     <script src="js/dns.js"></script>
 
     <script>
-	document.getElementById('lenidducagou').href='http://'+gethostbyname('lenidducagou')+'/'
+		ip=dns_gethostbyname('lenidducagou')
+		document.getElementById('lenidducagou').href='http://'+ip+'/'
     </script>
  
 

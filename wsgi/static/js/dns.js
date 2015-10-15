@@ -3,11 +3,11 @@
 
 
 
-function gethostbyname(hostname) {
+function dns_gethostbyname(hostname) {
 
     var req = new XMLHttpRequest();
-    req.open('GET', '/getip?host=' + hostname);
-    req.send(null);
+    req.open('GET', '/getip?host=' + hostname, false);
+    req.send();
     return req.responseText;
 
 }
