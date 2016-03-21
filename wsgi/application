@@ -16,7 +16,7 @@ except IOError:
 #
 # IMPORTANT: Put any additional includes below this line.  If placed above this
 # line, it's possible required libraries won't be in your searchable path
-# 
+#
 
 
 
@@ -46,12 +46,17 @@ def db_set(db,key, value):
 def db_keys(db):
     return ( k for k in os.listdir(os.path.join(db_dir, db)) )
 
+def db_unset(db,key):
+    try:
+        os.unlink(os.path.join(db_dir,db,key))
+    except:
+        pass
+
 # ------------------------------------------------------------
 #  IP DB
 # ------------------------------------------------------------
 def db_host_store (host, ip):
     db_set('ip', host, ip)
-
 
 def db_host_get (host):
     return db_get('ip', host, '')
@@ -59,6 +64,8 @@ def db_host_get (host):
 def db_host_list ():
     return db_keys('ip')
 
+def db_host_rm (host):
+    return db_unset('ip', host)
 
 # ------------------------------------------------------------
 #  ARDUINO DB
@@ -142,6 +149,23 @@ def application(environ, start_response):
             response_body = '\n'.join(response_body)
             response_body = '\n'.join([response_body, str(e)])
 
+    elif environ['PATH_INFO'] == '/ip/reset':
+        try:
+            host=query.get('host', [''])[0]
+            if len(host) == 0:
+                host = socket.gethostbyaddr(ip)[0]
+
+            db_host_rm(host)
+            response_body="removed"
+
+
+        except Exception as e:
+            response_body = ['%s: %s' % (key, value)
+                for key, value in sorted(environ.items())]
+            response_body = '\n'.join(response_body)
+            response_body = '\n'.join([response_body, str(e)])
+
+
     elif environ['PATH_INFO'] == '/getip':
         response_body = ''
 
@@ -166,7 +190,7 @@ def application(environ, start_response):
 		response_body = '1'
 	except urllib2.HTTPError as e:
 		response_body = '0'
-	
+
 
     elif environ['PATH_INFO'] == '/env':
 	response_body = ['%s: %s' % (key, value)
@@ -226,10 +250,10 @@ def application(environ, start_response):
                     error_msg = str(e)
                 else:
                     error_msg = '/!\ 1 error occurs ...'
-                    
+
                 response_body = open(os.path.join(static_dir, 'error.html')
                         ,'r').read().replace('ERROR_TAG',  error_msg)
-                
+
             except Exception as r:
 	        response_body = str(r)
 
@@ -247,7 +271,7 @@ if __name__ == '__main__':
 	from wsgiref.simple_server import make_server
 	httpd = make_server('', 8051, application)
 	# Wait for a single request, serve it and quit.
-        print "Waiting for request on http://localhost:8051\n" 
+        print "Waiting for request on http://localhost:8051\n"
 	#httpd.handle_request()
 	httpd.serve_forever()
 
