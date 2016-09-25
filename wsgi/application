@@ -262,7 +262,7 @@ def application(environ, start_response):
         ctype = mimetypes.guess_type(real_file_path)[0]
 
         try:
-	    response_body = open(os.path.join(static_dir, filename) ,'r').read()
+            response_body = open(os.path.join(static_dir, filename) ,'r').read()
 	except Exception as e:
             try:
                 if query.get('debug'):
@@ -274,7 +274,7 @@ def application(environ, start_response):
                         ,'r').read().replace('ERROR_TAG',  error_msg)
 
             except Exception as r:
-	        response_body = str(r)
+                response_body = str(r)
 
 
     status = '200 OK'
@@ -287,10 +287,10 @@ def application(environ, start_response):
 # Below for testing only
 #
 if __name__ == '__main__':
-	from wsgiref.simple_server import make_server
-	httpd = make_server('', 8051, application)
-	# Wait for a single request, serve it and quit.
-        print "Waiting for request on http://localhost:8051\n"
-	#httpd.handle_request()
-	httpd.serve_forever()
+    from wsgiref.simple_server import make_server
+    httpd = make_server('', 8051, application)
+    # Wait for a single request, serve it and quit.
+    print "Waiting for request on http://localhost:8051\n"
+    #httpd.handle_request()
+    httpd.serve_forever()
 
