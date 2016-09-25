@@ -2,7 +2,7 @@ from setuptools import setup
 # -*- coding: utf-8 -*-
 
 setup(name='MyFirstApp',
-      version='1.0',
+      version='1.1',
       description='First OpenShift App',
       author='François Chenais',
       author_email='Francois.Chenais@gmail.com',
