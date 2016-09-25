@@ -137,6 +137,8 @@ def application(environ, start_response):
 
     if environ['PATH_INFO'] == '/health':
         response_body = '{"services":{ "ok":1 } }'
+    elif environ['PATH_INFO'] == '/version':
+        response_body = '1.1'
 
     elif environ['PATH_INFO'] == '/myip':
         response_body = myip(environ)
