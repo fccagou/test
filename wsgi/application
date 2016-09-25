@@ -135,7 +135,7 @@ def application(environ, start_response):
     ctype = 'text/plain'
     query = parse_qs(environ['QUERY_STRING'])
 
-    if environ['PATH_INFO'] == '/health':
+    if environ['PATH_INFO'] == '/status':
         response_body = '{"services":{ "ok":1 } }'
 
     elif environ['PATH_INFO'] == '/version':
