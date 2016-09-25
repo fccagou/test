@@ -136,7 +136,7 @@ def application(environ, start_response):
     query = parse_qs(environ['QUERY_STRING'])
 
     if environ['PATH_INFO'] == '/health':
-        response_body = "1"
+        response_body = '{"services":{ "ok":1 } }'
 
     elif environ['PATH_INFO'] == '/myip':
         response_body = myip(environ)
