@@ -1,11 +1,10 @@
 #!/usr/bin/python
 import os
 import time
-from cgi import parse_qs
 
 import socket
 import mimetypes
-import urllib2
+import urllib
 
 # virtenv = os.environ['APPDIR'] + '/virtenv/'
 # os.environ['PYTHON_EGG_CACHE'] = os.path.join(
@@ -149,7 +148,11 @@ def application(environ, start_response):
     static_dir = os.path.join(environ['DOCUMENT_ROOT'], 'static')
 
     ctype = 'text/plain'
-    query = parse_qs(environ['QUERY_STRING'])
+    try:
+        query = urllib.parse.parse_qs(environ['QUERY_STRING'])
+    except AttributeError:
+        from cgi import parse_qs
+        query = parse_qs(environ['QUERY_STRING'])
 
     if environ['PATH_INFO'] == '/status':
         response_body = '{"services":{ "ok":1 } }'
@@ -221,9 +224,9 @@ def application(environ, start_response):
 
     elif environ['PATH_INFO'] == '/iscagoualive':
         try:
-            urllib2.urlopen('http://%s/' % (db_host_get('lenidducagou')))
+            urllib.request.urlopen('http://%s/' % (db_host_get('lenidducagou')))
             response_body = '1'
-        except urllib2.HTTPError as e:
+        except urllib.error.HTTPError:
             response_body = '0'
 
     elif environ['PATH_INFO'] == '/env':
@@ -277,6 +280,7 @@ def application(environ, start_response):
         try:
             response_body = open(os.path.join(
                 static_dir, filename), 'r').read()
+
         except Exception as e:
             try:
                 if query.get('debug'):
@@ -295,7 +299,7 @@ def application(environ, start_response):
                         ('Content-Length', str(len(response_body)))]
     #
     start_response(status, response_headers)
-    return [response_body]
+    return [response_body.encode('UTF-8')]
 
 
 #
@@ -305,6 +309,6 @@ if __name__ == '__main__':
     from wsgiref.simple_server import make_server
     httpd = make_server('', 8051, application)
     # Wait for a single request, serve it and quit.
-    print "Waiting for request on http://localhost:8051\n"
+    print("Waiting for request on http://localhost:8051\n")
     # httpd.handle_request()
     httpd.serve_forever()
