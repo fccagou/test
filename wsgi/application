@@ -8,7 +8,8 @@ import mimetypes
 import urllib2
 
 # virtenv = os.environ['APPDIR'] + '/virtenv/'
-# os.environ['PYTHON_EGG_CACHE'] = os.path.join(virtenv, 'lib/python2.6/site-packages')
+# os.environ['PYTHON_EGG_CACHE'] = os.path.join(
+#    virtenv,'lib/python2.6/site-packages')
 # virtualenv = os.path.join(virtenv, 'bin/activate_this.py')
 # try:
 #     execfile(virtualenv, dict(__file__=virtualenv))
@@ -21,12 +22,12 @@ import urllib2
 # line, it's possible required libraries won't be in your searchable path
 #
 
-
-
-def myip (environ):
-    if environ.get('HTTP_X_FORWARDED_FOR') and len(environ['HTTP_X_FORWARDED_FOR']):
+def myip(environ):
+    if (environ.get('HTTP_X_FORWARDED_FOR')
+            and len(environ['HTTP_X_FORWARDED_FOR'])):
         return environ['HTTP_X_FORWARDED_FOR']
-    return  environ['REMOTE_ADDR']
+
+    return environ['REMOTE_ADDR']
 
 # =============================================================================
 # DB
@@ -35,73 +36,86 @@ def myip (environ):
 #   db_dir/db/key
 #
 
-def db_get(db,key, default):
+
+def db_get(db, key, default):
     try:
-        return open(os.path.join(db_dir,db,key),'r').read()
+        return open(os.path.join(db_dir, db, key), 'r').read()
     except:
         return default
 
-def db_get_json(db,key, default):
+
+def db_get_json(db, key, default):
     try:
-        db_file=os.path.join(db_dir,db,key)
-        return "{\"%s\": { \"%s\": \"%s\", \"modif\": \"%s\"}}" % (db, key, open(db_file,'r').read().rstrip(), time.ctime(os.path.getmtime(db_file)))
+        db_file = os.path.join(db_dir, db, key)
+        return "{\"%s\": { \"%s\": \"%s\", \"modif\": \"%s\"}}" % (
+            db, key, open(db_file, 'r').read().rstrip(),
+            time.ctime(os.path.getmtime(db_file)))
     except:
         return default
 
-def db_set(db,key, value):
-    with open(os.path.join(db_dir,db,key), 'w') as f:
+
+def db_set(db, key, value):
+    with open(os.path.join(db_dir, db, key), 'w') as f:
         f.write(value)
         f.close()
 
-def db_keys(db):
-    return ( k for k in os.listdir(os.path.join(db_dir, db)) )
 
-def db_unset(db,key):
+def db_keys(db):
+    return (k for k in os.listdir(os.path.join(db_dir, db)))
+
+
+def db_unset(db, key):
     try:
-        os.unlink(os.path.join(db_dir,db,key))
+        os.unlink(os.path.join(db_dir, db, key))
     except:
         pass
 
 # ------------------------------------------------------------
 #  IP DB
 # ------------------------------------------------------------
-def db_host_store (host, ip):
+
+
+def db_host_store(host, ip):
     db_set('ip', host, ip)
 
-def db_host_get (host):
+
+def db_host_get(host):
     return db_get('ip', host, '')
 
-def db_host_list ():
+
+def db_host_list():
     return db_keys('ip')
 
-def db_host_rm (host):
+
+def db_host_rm(host):
     return db_unset('ip', host)
 
+
 def db_host_json(host):
-    return db_get_json('ip',host,'{}')
+    return db_get_json('ip', host, '{}')
 
 # ------------------------------------------------------------
 #  ARDUINO DB
 # ------------------------------------------------------------
 
-def db_arduino_get(key,default='undef'):
+
+def db_arduino_get(key, default='undef'):
     return db_get('arduino', key, default)
 
-def db_arduino_set(key,value):
+
+def db_arduino_set(key, value):
     db_set('arduino', key, value)
 
 
-
-def arduino_led_show (led_nb):
-    return db_arduino_get(led_nb,0)
-
-
-def arduino_led_set (led_nb, value):
-    return db_arduino_set(led_nb,value)
+def arduino_led_show(led_nb):
+    return db_arduino_get(led_nb, 0)
 
 
+def arduino_led_set(led_nb, value):
+    return db_arduino_set(led_nb, value)
 
-def arduino_state ():
+
+def arduino_state():
     ar_state = {}
     for k in db_keys('ar_dir'):
         ar_state[k] = db_arduino_get(k)
@@ -114,14 +128,14 @@ def arduino_state ():
 # =============================================================================
 
 
-data_dir=os.getenv('OPENSHIFT_DATA_DIR')
-db_dir=os.path.join(data_dir, 'db')
-ip_dir=os.path.join(db_dir, 'ip')
+data_dir = os.getenv('OPENSHIFT_DATA_DIR')
+db_dir = os.path.join(data_dir, 'db')
+ip_dir = os.path.join(db_dir, 'ip')
 
 if not os.path.exists(ip_dir):
     os.makedirs(ip_dir)
 
-ar_dir=os.path.join(db_dir, 'arduino')
+ar_dir = os.path.join(db_dir, 'arduino')
 if not os.path.exists(ar_dir):
     os.makedirs(ar_dir)
 
@@ -132,7 +146,7 @@ if not os.path.exists(ar_dir):
 
 def application(environ, start_response):
 
-    static_dir=os.path.join(environ['DOCUMENT_ROOT'], 'static')
+    static_dir = os.path.join(environ['DOCUMENT_ROOT'], 'static')
 
     ctype = 'text/plain'
     query = parse_qs(environ['QUERY_STRING'])
@@ -150,52 +164,49 @@ def application(environ, start_response):
         ip = myip(environ)
         response_body = ip
 
-
         try:
-            host=query.get('host', [''])[0]
+            host = query.get('host', [''])[0]
             if len(host) == 0:
                 host = socket.gethostbyaddr(ip)[0]
 
             db_host_store(host, ip)
 
-
         except Exception as e:
             response_body = ['%s: %s' % (key, value)
-                for key, value in sorted(environ.items())]
+                             for key, value in sorted(environ.items())]
             response_body = '\n'.join(response_body)
             response_body = '\n'.join([response_body, str(e)])
 
     elif environ['PATH_INFO'] == '/ip/reset':
         try:
-            host=query.get('host', [''])[0]
+            host = query.get('host', [''])[0]
             if len(host) == 0:
                 host = socket.gethostbyaddr(ip)[0]
 
             db_host_rm(host)
-            response_body="removed"
-
+            response_body = "removed"
 
         except Exception as e:
             response_body = ['%s: %s' % (key, value)
-                for key, value in sorted(environ.items())]
+                             for key, value in sorted(environ.items())]
             response_body = '\n'.join(response_body)
             response_body = '\n'.join([response_body, str(e)])
-
 
     elif environ['PATH_INFO'] == '/getip' or environ['PATH_INFO'] == '/ip/addr':
         response_body = ''
 
-        host=query.get('host', [''])[0]
-        verbose=query.get('verbose',[''])[0]
+        host = query.get('host', [''])[0]
+        verbose = query.get('verbose', [''])[0]
 
         if len(host) == 0 or host == "all":
 
-            for h in db_host_list ():
+            for h in db_host_list():
                 try:
                     if len(verbose):
-                        response_body += "%s\n" %(db_host_json(h))
+                        response_body += "%s\n" % (db_host_json(h))
                     else:
-                        response_body += "%s: %s\n" %(h, db_host_get(h).rstrip())
+                        response_body += "%s: %s\n" % (h,
+                                                       db_host_get(h).rstrip())
 
                 except Exception as e:
                     response_body += "%s: ERROR(%s)" % (h, str(e))
@@ -209,17 +220,16 @@ def application(environ, start_response):
                 response_body = str(e)
 
     elif environ['PATH_INFO'] == '/iscagoualive':
-	try:
-		urllib2.urlopen('http://%s/' % (db_host_get('lenidducagou')))
-		response_body = '1'
-	except urllib2.HTTPError as e:
-		response_body = '0'
-
+        try:
+            urllib2.urlopen('http://%s/' % (db_host_get('lenidducagou')))
+            response_body = '1'
+        except urllib2.HTTPError as e:
+            response_body = '0'
 
     elif environ['PATH_INFO'] == '/env':
-	response_body = ['%s: %s' % (key, value)
-            for key, value in sorted(environ.items())]
-	response_body = '\n'.join(response_body)
+        response_body = ['%s: %s' % (key, value)
+                         for key, value in sorted(environ.items())]
+        response_body = '\n'.join(response_body)
 
     elif environ['PATH_INFO'].startswith('/arduino/'):
         cmd = environ['PATH_INFO'].split('/')
@@ -232,11 +242,11 @@ def application(environ, start_response):
             response_body = db_arduino_get(subject)
         elif action == 'set':
             # Set action
-            db_arduino_set(subject,cmd[4])
+            db_arduino_set(subject, cmd[4])
             response_body = 'value set'
         elif action == 'state':
             # Set action
-            ar_state = arduino_state ()
+            ar_state = arduino_state()
             for k in ar_state:
                 response_body += "%s: %\n" % (k, ar_state[k])
         else:
@@ -249,44 +259,44 @@ def application(environ, start_response):
     else:
 
         if environ['PATH_INFO'].startswith("/static/"):
-            filename='/'.join(environ['PATH_INFO'].split('/')[2:])
+            filename = '/'.join(environ['PATH_INFO'].split('/')[2:])
         else:
             filename = environ['PATH_INFO']
 
         if filename.startswith('/'):
             filename = filename[1:]
 
-
         real_file_path = os.path.join(static_dir, filename)
-
 
         if not filename or len(filename) == 0 or not os.path.isfile(real_file_path):
             filename = 'index.html'
-            real_file_path=os.path.join(static_dir,filename)
+            real_file_path = os.path.join(static_dir, filename)
 
         ctype = mimetypes.guess_type(real_file_path)[0]
 
         try:
-            response_body = open(os.path.join(static_dir, filename) ,'r').read()
-	except Exception as e:
+            response_body = open(os.path.join(
+                static_dir, filename), 'r').read()
+        except Exception as e:
             try:
                 if query.get('debug'):
                     error_msg = str(e)
                 else:
                     error_msg = '/!\ 1 error occurs ...'
 
-                response_body = open(os.path.join(static_dir, 'error.html')
-                        ,'r').read().replace('ERROR_TAG',  error_msg)
+                response_body = open(os.path.join(static_dir, 'error.html'), 'r').read(
+                ).replace('ERROR_TAG',  error_msg)
 
             except Exception as r:
                 response_body = str(r)
 
-
     status = '200 OK'
-    response_headers = [('Content-Type', ctype), ('Content-Length', str(len(response_body)))]
+    response_headers = [('Content-Type', ctype),
+                        ('Content-Length', str(len(response_body)))]
     #
     start_response(status, response_headers)
     return [response_body]
+
 
 #
 # Below for testing only
@@ -296,6 +306,5 @@ if __name__ == '__main__':
     httpd = make_server('', 8051, application)
     # Wait for a single request, serve it and quit.
     print "Waiting for request on http://localhost:8051\n"
-    #httpd.handle_request()
+    # httpd.handle_request()
     httpd.serve_forever()
-
