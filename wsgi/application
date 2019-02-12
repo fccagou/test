@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import os
 import time
+import json
 
 import socket
 import mimetypes
@@ -121,6 +122,26 @@ def arduino_state():
 
     return ar_state
 
+# ------------------------------------------------------------
+#  status DB
+# ------------------------------------------------------------
+
+
+def pyap_status(key, default='undef'):
+    UNK = '{"services":{ "ok":0, "warn":0, "crit":0, "unknown":1}}'
+    INIT = '{"services":{ "ok":0, "warn":0, "crit":0, "unknown":0}}'
+    if key == 'global':
+        state = json.loads(INIT)
+
+        for k in db_keys('status'):
+            k_state = json.loads(db_get('status', k, UNK))
+            for s in state['services'].keys():
+                state['services'][s] += int(k_state['services'][s])
+    else:
+        state = json.loads(db_get('status', key, UNK))
+
+    return json.dumps(state)
+
 
 # =============================================================================
 #   SETUP
@@ -155,7 +176,10 @@ def application(environ, start_response):
         query = parse_qs(environ['QUERY_STRING'])
 
     if environ['PATH_INFO'] == '/status':
-        response_body = '{"services":{ "ok":1 } }'
+        system = query.get('system', [''])[0]
+        if len(system) == 0:
+            system = 'global'
+        response_body = pyap_status(system)
 
     elif environ['PATH_INFO'] == '/version':
         response_body = '1.1'
